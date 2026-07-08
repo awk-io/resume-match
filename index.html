@@ -1,1 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Match · Resume Matcher</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- pdf.js for reliable PDF text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
 
+    <div class="app">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-bolt"></i>
+                <h1>Match <span>· resume matcher</span></h1>
+            </div>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-circle" id="themeIcon"></i> <span id="themeLabel">Dark</span>
+            </button>
+        </div>
+
+        <!-- Main -->
+        <div class="main">
+            <!-- Inputs -->
+            <div class="inputs">
+                <div class="input-group">
+                    <label><i class="fas fa-briefcase"></i> Job Description</label>
+                    <textarea id="jobDesc" placeholder="Paste the job description here..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-file-alt"></i> Resume</label>
+                    <textarea id="resumeText" placeholder="Paste your resume text or upload a .txt / .pdf file..."></textarea>
+                    <div class="upload-area">
+                        <label for="fileInput"><i class="fas fa-upload"></i> Upload .txt or .pdf</label>
+                        <input type="file" id="fileInput" accept=".txt,.pdf" />
+                        <span class="file-name" id="fileName">no file</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button class="btn" id="analyzeBtn"><i class="fas fa-play"></i> Analyze</button>
+                <button class="btn outline" id="clearBtn"><i class="fas fa-trash"></i> Clear</button>
+            </div>
+
+            <!-- Results -->
+            <div class="results" id="results">
+                <div class="score-row">
+                    <div class="score-circle" id="scoreCircle">0%</div>
+                    <div class="score-detail">
+                        <div class="stat">
+                            <span><i class="fas fa-check" style="color:var(--success);"></i> Matched: <strong id="matchedCount">0</strong></span>
+                            <span><i class="fas fa-times" style="color:var(--danger);"></i> Missing: <strong id="missingCount">0</strong></span>
+                            <span><i class="fas fa-list"></i> Total: <strong id="totalCount">0</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="skill-grid">
+                    <div class="skill-box">
+                        <h4><i class="fas fa-check" style="color:var(--success);"></i> Matched Skills</h4>
+                        <div class="skill-tags" id="matchedSkills"></div>
+                    </div>
+                    <div class="skill-box">
+                        <h4><i class="fas fa-times" style="color:var(--danger);"></i> Missing Skills</h4>
+                        <div class="skill-tags" id="missingSkills"></div>
+                    </div>
+                </div>
+
+                <div class="suggestions">
+                    <h4><i class="fas fa-lightbulb"></i> Suggestions</h4>
+                    <ul id="suggestionsList"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
