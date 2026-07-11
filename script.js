@@ -18,15 +18,13 @@
     const jobWordCount = document.getElementById('jobWordCount');
     const resumeWordCount = document.getElementById('resumeWordCount');
 
-    // Simple keyword extraction - clean and effective
+    // Simple keyword extraction
     function extractKeywords(text) {
-        // Convert to lowercase and split into words
         const words = text.toLowerCase()
-            .replace(/[^a-z0-9\s]/g, ' ')
+            .replace(/[^a-z0-9\s#+.]/g, ' ')
             .split(/\s+/)
             .filter(w => w.length > 2 && !/^\d+$/.test(w));
         
-        // Remove common stopwords
         const stopwords = new Set([
             'the','and','for','are','but','not','you','all','can','had','her','was',
             'one','our','out','see','she','two','use','way','who','your','about',
@@ -79,7 +77,6 @@
         
         const filtered = words.filter(w => !stopwords.has(w));
         
-        // Remove duplicates while preserving order
         const unique = [];
         const seen = new Set();
         for (const w of filtered) {
@@ -101,11 +98,10 @@
     resumeInput.addEventListener('input', updateWordCounts);
     updateWordCounts();
 
-    // PDF.js setup
+    // PDF.js setup - using HTTPS for GitHub Pages
     const pdfjsLib = window.pdfjsLib;
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    // File upload handler
     fileInput.addEventListener('change', async function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -114,74 +110,82 @@
         
         if (ext === 'pdf') {
             try {
-                const buf = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-                let text = '';
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let fullText = '';
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
-                    const content = await page.getTextContent();
-                    text += content.items.map(item => item.str).join(' ') + '\n';
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + '\n';
                 }
-                resumeInput.value = text.trim() || 'No text extracted from PDF';
-            } catch (err) {
-                resumeInput.value = 'Error extracting PDF text';
-                console.warn(err);
+                resumeInput.value = fullText.trim() || 'No text extracted from PDF';
+                updateWordCounts();
+            } catch (error) {
+                console.error('PDF extraction error:', error);
+                resumeInput.value = 'Error extracting PDF text. Please paste manually.';
+                updateWordCounts();
             }
         } else {
             const reader = new FileReader();
-            reader.onload = (ev) => { 
-                resumeInput.value = ev.target.result; 
+            reader.onload = (e) => {
+                resumeInput.value = e.target.result;
                 updateWordCounts();
             };
-            reader.onerror = () => { resumeInput.value = 'Error reading file'; };
+            reader.onerror = () => {
+                resumeInput.value = 'Error reading file';
+                updateWordCounts();
+            };
             reader.readAsText(file);
         }
-        updateWordCounts();
     });
 
     // Drag and drop
-    resumeInput.addEventListener('dragover', e => { 
-        e.preventDefault(); 
-        resumeInput.style.borderColor = '#a0a096'; 
+    resumeInput.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        resumeInput.style.borderColor = '#a0a096';
     });
-    resumeInput.addEventListener('dragleave', () => { 
-        resumeInput.style.borderColor = ''; 
+    resumeInput.addEventListener('dragleave', () => {
+        resumeInput.style.borderColor = '';
     });
-    resumeInput.addEventListener('drop', async e => {
+    resumeInput.addEventListener('drop', async (e) => {
         e.preventDefault();
         resumeInput.style.borderColor = '';
         const file = e.dataTransfer.files[0];
         if (!file) return;
+        
         fileName.textContent = file.name;
         const ext = file.name.toLowerCase().split('.').pop();
         
         if (ext === 'pdf') {
             try {
-                const buf = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-                let text = '';
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let fullText = '';
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
-                    const content = await page.getTextContent();
-                    text += content.items.map(item => item.str).join(' ') + '\n';
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + '\n';
                 }
-                resumeInput.value = text.trim() || 'No text extracted from PDF';
-            } catch (err) {
-                resumeInput.value = 'Error extracting PDF text';
-                console.warn(err);
+                resumeInput.value = fullText.trim() || 'No text extracted from PDF';
+                updateWordCounts();
+            } catch (error) {
+                console.error('PDF extraction error:', error);
+                resumeInput.value = 'Error extracting PDF text. Please paste manually.';
+                updateWordCounts();
             }
         } else {
             const reader = new FileReader();
-            reader.onload = (ev) => { 
-                resumeInput.value = ev.target.result; 
+            reader.onload = (e) => {
+                resumeInput.value = e.target.result;
                 updateWordCounts();
             };
             reader.readAsText(file);
         }
-        updateWordCounts();
     });
 
-    // Main analysis function
+    // Main analysis
     function analyze() {
         const job = jobInput.value.trim();
         const resume = resumeInput.value.trim();
@@ -191,19 +195,19 @@
             return;
         }
 
-        // Extract keywords
         const jobKeywords = extractKeywords(job);
         const resumeKeywords = extractKeywords(resume);
 
-        // Find matches and missing
         const matched = [];
         const missing = [];
         
         for (const keyword of jobKeywords) {
-            // Check if keyword exists in resume keywords (partial match allowed)
             const found = resumeKeywords.some(rk => 
-                rk.includes(keyword) || keyword.includes(rk) || 
-                rk.indexOf(keyword) !== -1 || keyword.indexOf(rk) !== -1
+                rk === keyword || 
+                rk.includes(keyword) || 
+                keyword.includes(rk) ||
+                rk.indexOf(keyword) !== -1 || 
+                keyword.indexOf(rk) !== -1
             );
             if (found) {
                 matched.push(keyword);
@@ -217,7 +221,6 @@
         const missCount = missing.length;
         const score = total > 0 ? Math.round((matchCount / total) * 100) : 0;
 
-        // Update score display
         scoreCircle.textContent = score + '%';
         scoreCircle.className = 'score-circle';
         if (score >= 70) scoreCircle.classList.add('high');
@@ -228,7 +231,6 @@
         missingCount.textContent = missCount;
         totalCount.textContent = total;
 
-        // Render matched list
         matchedList.innerHTML = '';
         if (matched.length > 0) {
             matched.forEach(k => {
@@ -244,7 +246,6 @@
             matchedList.appendChild(li);
         }
 
-        // Render missing list
         missingList.innerHTML = '';
         if (missing.length > 0) {
             missing.forEach(k => {
@@ -260,7 +261,6 @@
             missingList.appendChild(li);
         }
 
-        // Render suggestions (top 10 missing keywords)
         suggestList.innerHTML = '';
         if (missing.length > 0) {
             const top = missing.slice(0, 10);
@@ -287,7 +287,6 @@
         resultsContainer.classList.add('visible');
     }
 
-    // Event listeners
     analyzeBtn.addEventListener('click', analyze);
 
     clearBtn.addEventListener('click', () => {
@@ -299,7 +298,6 @@
         updateWordCounts();
     });
 
-    // Load sample data
     sampleBtn.addEventListener('click', () => {
         jobInput.value = `Senior Software Engineer
 
@@ -334,7 +332,6 @@ Experience:
         setTimeout(analyze, 200);
     });
 
-    // Auto-analyze on input change if results are visible
     let debounce = null;
     function autoAnalyze() {
         if (resultsContainer.classList.contains('visible')) {
@@ -345,13 +342,11 @@ Experience:
     jobInput.addEventListener('input', autoAnalyze);
     resumeInput.addEventListener('input', autoAnalyze);
 
-    // Initialize empty
     jobInput.value = '';
     resumeInput.value = '';
     updateWordCounts();
     resultsContainer.classList.remove('visible');
 
-    // Keyboard shortcut: Ctrl+Enter to analyze
     document.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             e.preventDefault();
