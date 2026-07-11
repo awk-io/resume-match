@@ -1,4 +1,4 @@
-<!-- index.html - Single file, self-contained, empty by default -->
+<!-- index.html - Works on GitHub Pages, no external dependencies -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -318,6 +318,19 @@
             text-align: right;
         }
 
+        .status-msg {
+            font-size: 0.7rem;
+            color: #6a6a62;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid #e8e8e0;
+            margin-bottom: 0.5rem;
+            display: none;
+        }
+
+        .status-msg.show {
+            display: block;
+        }
+
         @media (max-width: 700px) {
             .grid-2, .bulletin-2 { grid-template-columns: 1fr; }
             .app { padding: 1.2rem; }
@@ -355,12 +368,15 @@
             .actions { border-color: #3a3a34; }
             .results { border-color: #3a3a34; }
             .score-line { border-color: #3a3a34; }
+            .status-msg { color: #8a8a82; border-color: #3a3a34; }
         }
     </style>
 </head>
 <body>
     <div class="app">
         <h1>resume keyword matcher</h1>
+
+        <div class="status-msg" id="statusMsg">ready</div>
 
         <div class="grid-2">
             <div class="field">
@@ -370,10 +386,10 @@
             </div>
             <div class="field">
                 <label for="resumeInput">resume</label>
-                <textarea id="resumeInput" placeholder="paste resume or upload file"></textarea>
+                <textarea id="resumeInput" placeholder="paste resume or upload .txt file"></textarea>
                 <div class="upload-row">
-                    <label for="fileInput">upload</label>
-                    <input type="file" id="fileInput" accept=".txt,.pdf">
+                    <label for="fileInput">upload .txt</label>
+                    <input type="file" id="fileInput" accept=".txt">
                     <span class="fname" id="fileName">no file</span>
                 </div>
                 <div class="word-count" id="resumeWordCount">0 words</div>
@@ -414,7 +430,6 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
         (function() {
             'use strict';
@@ -436,6 +451,13 @@
             const suggestList = document.getElementById('suggestList');
             const jobWordCount = document.getElementById('jobWordCount');
             const resumeWordCount = document.getElementById('resumeWordCount');
+            const statusMsg = document.getElementById('statusMsg');
+
+            function setStatus(msg) {
+                statusMsg.textContent = msg;
+                statusMsg.classList.add('show');
+                console.log(msg);
+            }
 
             // Simple keyword extraction
             function extractKeywords(text) {
@@ -521,104 +543,24 @@
             resumeInput.addEventListener('input', updateWordCounts);
             updateWordCounts();
 
-            // PDF.js setup
-            const pdfjsLib = window.pdfjsLib;
-            if (pdfjsLib) {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            }
-
-            // File upload handler
-            fileInput.addEventListener('change', async function(e) {
+            // File upload handler - only TXT
+            fileInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (!file) return;
-                fileName.textContent = file.name;
-                const ext = file.name.toLowerCase().split('.').pop();
-                
-                if (ext === 'pdf') {
-                    if (!pdfjsLib) {
-                        resumeInput.value = 'PDF.js library not loaded. Please refresh.';
-                        updateWordCounts();
-                        return;
-                    }
-                    try {
-                        const arrayBuffer = await file.arrayBuffer();
-                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                        let fullText = '';
-                        for (let i = 1; i <= pdf.numPages; i++) {
-                            const page = await pdf.getPage(i);
-                            const textContent = await page.getTextContent();
-                            const pageText = textContent.items.map(item => item.str).join(' ');
-                            fullText += pageText + '\n';
-                        }
-                        resumeInput.value = fullText.trim() || 'No text extracted from PDF';
-                        updateWordCounts();
-                    } catch (error) {
-                        console.error('PDF extraction error:', error);
-                        resumeInput.value = 'Error extracting PDF text. Please paste manually.';
-                        updateWordCounts();
-                    }
-                } else {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        resumeInput.value = ev.target.result;
-                        updateWordCounts();
-                    };
-                    reader.onerror = () => {
-                        resumeInput.value = 'Error reading file';
-                        updateWordCounts();
-                    };
-                    reader.readAsText(file);
-                }
-            });
-
-            // Drag and drop
-            resumeInput.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                resumeInput.style.borderColor = '#a0a096';
-            });
-            resumeInput.addEventListener('dragleave', () => {
-                resumeInput.style.borderColor = '';
-            });
-            resumeInput.addEventListener('drop', async (e) => {
-                e.preventDefault();
-                resumeInput.style.borderColor = '';
-                const file = e.dataTransfer.files[0];
-                if (!file) return;
                 
                 fileName.textContent = file.name;
-                const ext = file.name.toLowerCase().split('.').pop();
                 
-                if (ext === 'pdf') {
-                    if (!pdfjsLib) {
-                        resumeInput.value = 'PDF.js library not loaded. Please refresh.';
-                        updateWordCounts();
-                        return;
-                    }
-                    try {
-                        const arrayBuffer = await file.arrayBuffer();
-                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                        let fullText = '';
-                        for (let i = 1; i <= pdf.numPages; i++) {
-                            const page = await pdf.getPage(i);
-                            const textContent = await page.getTextContent();
-                            const pageText = textContent.items.map(item => item.str).join(' ');
-                            fullText += pageText + '\n';
-                        }
-                        resumeInput.value = fullText.trim() || 'No text extracted from PDF';
-                        updateWordCounts();
-                    } catch (error) {
-                        console.error('PDF extraction error:', error);
-                        resumeInput.value = 'Error extracting PDF text. Please paste manually.';
-                        updateWordCounts();
-                    }
-                } else {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        resumeInput.value = ev.target.result;
-                        updateWordCounts();
-                    };
-                    reader.readAsText(file);
-                }
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    resumeInput.value = ev.target.result;
+                    updateWordCounts();
+                    setStatus('loaded: ' + file.name);
+                };
+                reader.onerror = () => {
+                    resumeInput.value = 'Error reading file';
+                    setStatus('error reading file');
+                };
+                reader.readAsText(file);
             });
 
             // Main analysis
@@ -628,8 +570,11 @@
                 
                 if (!job || !resume) {
                     resultsContainer.classList.remove('visible');
+                    setStatus('please enter both job description and resume');
                     return;
                 }
+
+                setStatus('analyzing...');
 
                 const jobKeywords = extractKeywords(job);
                 const resumeKeywords = extractKeywords(resume);
@@ -721,6 +666,7 @@
                 }
 
                 resultsContainer.classList.add('visible');
+                setStatus('analysis complete - ' + matchCount + ' matched, ' + missCount + ' missing');
             }
 
             analyzeBtn.addEventListener('click', analyze);
@@ -732,40 +678,15 @@
                 fileName.textContent = 'no file';
                 resultsContainer.classList.remove('visible');
                 updateWordCounts();
+                setStatus('cleared');
             });
 
             sampleBtn.addEventListener('click', () => {
-                jobInput.value = `Senior Software Engineer
-
-Requirements:
-- 5+ years of experience with Python
-- Strong knowledge of Django or Flask
-- Experience with AWS (EC2, S3, RDS)
-- Proficiency with React.js
-- Familiarity with Docker and Kubernetes
-- PostgreSQL experience
-- REST API design
-- Strong problem-solving skills
-- Excellent communication
-- Team leadership experience
-- Agile development methodology`;
-
-                resumeInput.value = `Software Engineer
-Experience:
-- 4 years Python development
-- Django framework (2 years)
-- Flask API development (1 year)
-- AWS S3 and EC2 experience
-- React.js frontend (2 years)
-- PostgreSQL database design
-- REST API development
-- Docker containerization
-- Git version control
-- Agile methodology
-- Cross-functional collaboration`;
-
+                jobInput.value = 'Senior Software Engineer. Requirements: 5+ years Python, Django or Flask, AWS EC2 S3 RDS, React.js, Docker Kubernetes, PostgreSQL, REST API, problem-solving, communication, team leadership, Agile.';
+                resumeInput.value = 'Software Engineer. 4 years Python, Django 2 years, Flask 1 year, AWS S3 EC2, React.js 2 years, PostgreSQL, REST API, Docker, Git, Agile, cross-functional.';
                 updateWordCounts();
-                setTimeout(analyze, 300);
+                setTimeout(analyze, 200);
+                setStatus('sample data loaded');
             });
 
             // Auto-analyze
@@ -779,11 +700,12 @@ Experience:
             jobInput.addEventListener('input', autoAnalyze);
             resumeInput.addEventListener('input', autoAnalyze);
 
-            // EMPTY BY DEFAULT - no sample data loaded
+            // EMPTY BY DEFAULT
             jobInput.value = '';
             resumeInput.value = '';
             updateWordCounts();
             resultsContainer.classList.remove('visible');
+            setStatus('ready - enter text and click analyze');
 
             // Keyboard shortcut
             document.addEventListener('keydown', (e) => {
