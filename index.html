@@ -5,6 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Keyword Matcher</title>
     <style>
+        /* ===== CSS Variables ===== */
+        :root {
+            --bg: #e8e8e0;
+            --surface: #ffffff;
+            --surface-alt: #f5f5f0;
+            --border: #c8c8c0;
+            --border-light: #d6d6ce;
+            --text: #1a1a1a;
+            --text-secondary: #444;
+            --text-muted: #777;
+            --text-light: #999;
+            --shadow: rgba(0,0,0,0.05);
+            --btn-bg: #222;
+            --btn-text: #fff;
+            --btn-hover: #444;
+            --status-color: #666;
+            --score-bg: #d0d0c8;
+            --score-text: #111;
+            --matched-color: #2e7d32;
+            --missing-color: #c62828;
+            --suggest-bg: #e8e8e0;
+            --input-bg: #f5f5f0;
+            --input-border: #d0d0c8;
+            --input-focus: #888;
+            --placeholder: #aaa;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --surface-alt: #1e1e1e;
+            --border: #2a2a2a;
+            --border-light: #2a2a2a;
+            --text: #e8e8e8;
+            --text-secondary: #aaa;
+            --text-muted: #777;
+            --text-light: #555;
+            --shadow: rgba(0,0,0,0.4);
+            --btn-bg: #e8e8e8;
+            --btn-text: #0a0a0a;
+            --btn-hover: #ffffff;
+            --status-color: #888;
+            --score-bg: #2a2a2a;
+            --score-text: #e8e8e8;
+            --matched-color: #66bb6a;
+            --missing-color: #ef5350;
+            --suggest-bg: #1e1e1e;
+            --input-bg: #1a1a1a;
+            --input-border: #2a2a2a;
+            --input-focus: #444;
+            --placeholder: #555;
+        }
+
+        /* ===== Reset ===== */
         * {
             margin: 0;
             padding: 0;
@@ -12,35 +66,67 @@
         }
 
         body {
-            background: #e8e8e0;
+            background: var(--bg);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 20px;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         .container {
             max-width: 1100px;
             width: 100%;
-            background: #ffffff;
+            background: var(--surface);
             padding: 30px 35px;
-            border: 1px solid #c8c8c0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 12px var(--shadow);
+            transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* ===== Header ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            transition: border 0.3s ease;
         }
 
         h1 {
             font-size: 22px;
             font-weight: 300;
             letter-spacing: 2px;
-            color: #222;
+            color: var(--text);
             text-transform: uppercase;
-            border-bottom: 2px solid #d0d0c8;
-            padding-bottom: 12px;
-            margin-bottom: 24px;
+            transition: color 0.3s ease;
         }
 
+        .theme-toggle {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            padding: 6px 16px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 0;
+        }
+
+        .theme-toggle:hover {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        /* ===== Grid ===== */
         .row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -56,37 +142,47 @@
         .field label {
             font-size: 11px;
             font-weight: 600;
-            color: #444;
+            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.8px;
             margin-bottom: 6px;
+            transition: color 0.3s ease;
         }
 
         .field textarea {
-            background: #f5f5f0;
-            border: 1px solid #d0d0c8;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
             padding: 10px 12px;
             font-size: 14px;
             font-family: inherit;
-            color: #1a1a1a;
+            color: var(--text);
             resize: vertical;
             min-height: 160px;
             line-height: 1.7;
             width: 100%;
-            transition: border 0.15s;
+            transition: background 0.3s ease, border 0.3s ease, color 0.3s ease;
         }
 
         .field textarea:focus {
             outline: none;
-            border-color: #888;
-            background: #fafaf8;
+            border-color: var(--input-focus);
+            background: var(--surface);
         }
 
         .field textarea::placeholder {
-            color: #aaa;
+            color: var(--placeholder);
             font-weight: 300;
         }
 
+        .word-count {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-align: right;
+            transition: color 0.3s ease;
+        }
+
+        /* ===== File Row ===== */
         .file-row {
             display: flex;
             align-items: center;
@@ -96,20 +192,21 @@
         }
 
         .file-row label {
-            background: #e8e8e0;
+            background: var(--surface-alt);
             padding: 4px 16px;
             font-size: 11px;
             font-weight: 500;
-            color: #333;
-            border: 1px solid #c8c8c0;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
             cursor: pointer;
-            transition: background 0.15s;
+            transition: all 0.15s ease;
             text-transform: none;
             letter-spacing: 0;
         }
 
         .file-row label:hover {
-            background: #d8d8d0;
+            background: var(--border);
+            color: var(--text);
         }
 
         .file-row input[type="file"] {
@@ -118,56 +215,54 @@
 
         .file-row .fname {
             font-size: 12px;
-            color: #777;
+            color: var(--text-muted);
             max-width: 150px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            transition: color 0.3s ease;
         }
 
-        .word-count {
-            font-size: 11px;
-            color: #999;
-            margin-top: 4px;
-            text-align: right;
-        }
-
+        /* ===== Actions ===== */
         .actions {
             display: flex;
             gap: 12px;
             margin: 16px 0 20px 0;
             flex-wrap: wrap;
-            border-top: 1px solid #e0e0d8;
+            border-top: 1px solid var(--border-light);
             padding-top: 16px;
+            transition: border 0.3s ease;
         }
 
         .btn {
-            background: #222;
-            border: 1px solid #222;
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-bg);
             padding: 8px 28px;
             font-size: 12px;
             font-weight: 500;
-            color: #fff;
+            color: var(--btn-text);
             cursor: pointer;
-            transition: background 0.15s;
+            transition: all 0.15s ease;
             font-family: inherit;
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
 
         .btn:hover {
-            background: #444;
+            background: var(--btn-hover);
+            border-color: var(--btn-hover);
         }
 
         .btn-outline {
             background: transparent;
-            color: #444;
-            border: 1px solid #c8c8c0;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
         }
 
         .btn-outline:hover {
-            background: #f0f0ea;
-            color: #222;
+            background: var(--surface-alt);
+            color: var(--text);
+            border-color: var(--text-muted);
         }
 
         .btn:disabled {
@@ -175,22 +270,26 @@
             cursor: not-allowed;
         }
 
+        /* ===== Status ===== */
         .status {
             font-size: 13px;
-            color: #666;
+            color: var(--status-color);
             padding: 6px 0 10px 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-light);
             margin-bottom: 12px;
             min-height: 30px;
+            transition: color 0.3s ease, border 0.3s ease;
         }
 
+        /* ===== Results ===== */
         .results {
             display: none;
-            border-top: 1px solid #d0d0c8;
+            border-top: 1px solid var(--border-light);
             padding-top: 18px;
             margin-top: 6px;
             flex-direction: column;
             gap: 14px;
+            transition: border 0.3s ease;
         }
 
         .results.visible {
@@ -202,32 +301,39 @@
             align-items: center;
             gap: 24px;
             padding-bottom: 10px;
-            border-bottom: 1px solid #e8e8e0;
+            border-bottom: 1px solid var(--border-light);
+            transition: border 0.3s ease;
         }
 
         .score-circle {
             width: 64px;
             height: 64px;
             border-radius: 50%;
-            background: #d0d0c8;
+            background: var(--score-bg);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 20px;
             font-weight: 700;
-            color: #111;
+            color: var(--score-text);
             flex-shrink: 0;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
-        .score-circle.high { background: #8bc34a; color: #1a3a0a; }
-        .score-circle.medium { background: #ffc107; color: #3a2a00; }
-        .score-circle.low { background: #ef5350; color: #3a0a0a; }
+        .score-circle.high { background: #2e7d32; color: #fff; }
+        .score-circle.medium { background: #f9a825; color: #1a1a1a; }
+        .score-circle.low { background: #c62828; color: #fff; }
+
+        [data-theme="dark"] .score-circle.high { background: #43a047; color: #fff; }
+        [data-theme="dark"] .score-circle.medium { background: #fdd835; color: #0a0a0a; }
+        [data-theme="dark"] .score-circle.low { background: #e53935; color: #fff; }
 
         .stats {
             display: flex;
             gap: 24px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
         }
 
         .stats span {
@@ -237,10 +343,12 @@
         }
 
         .stats strong {
-            color: #111;
+            color: var(--text);
             font-size: 16px;
+            transition: color 0.3s ease;
         }
 
+        /* ===== Lists ===== */
         .lists {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -248,20 +356,22 @@
         }
 
         .list-box {
-            background: #f5f5f0;
-            border: 1px solid #d6d6ce;
+            background: var(--surface-alt);
+            border: 1px solid var(--border-light);
             padding: 12px 16px;
+            transition: background 0.3s ease, border 0.3s ease;
         }
 
         .list-box h3 {
             font-size: 11px;
             font-weight: 600;
-            color: #444;
+            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.6px;
             margin-bottom: 6px;
-            border-bottom: 1px solid #e0e0d8;
+            border-bottom: 1px solid var(--border-light);
             padding-bottom: 4px;
+            transition: color 0.3s ease, border 0.3s ease;
         }
 
         .list-box ul {
@@ -274,10 +384,11 @@
 
         .list-box ul li {
             font-size: 13px;
-            color: #1a1a1a;
+            color: var(--text);
             padding: 3px 0 3px 22px;
             position: relative;
             line-height: 1.6;
+            transition: color 0.3s ease;
         }
 
         .list-box ul li::before {
@@ -287,26 +398,29 @@
             font-size: 13px;
         }
 
-        .list-box ul li.match::before { content: "✓"; color: #2e7d32; }
-        .list-box ul li.miss::before { content: "✗"; color: #c62828; }
-        .list-box ul li.empty { color: #999; font-style: italic; padding-left: 0; }
+        .list-box ul li.match::before { content: "✓"; color: var(--matched-color); }
+        .list-box ul li.miss::before { content: "✗"; color: var(--missing-color); }
+        .list-box ul li.empty { color: var(--text-muted); font-style: italic; padding-left: 0; }
         .list-box ul li.empty::before { content: none; }
 
+        /* ===== Suggestions ===== */
         .suggest-box {
-            background: #f5f5f0;
-            border: 1px solid #d6d6ce;
+            background: var(--surface-alt);
+            border: 1px solid var(--border-light);
             padding: 12px 16px;
+            transition: background 0.3s ease, border 0.3s ease;
         }
 
         .suggest-box h3 {
             font-size: 11px;
             font-weight: 600;
-            color: #444;
+            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.6px;
             margin-bottom: 6px;
-            border-bottom: 1px solid #e0e0d8;
+            border-bottom: 1px solid var(--border-light);
             padding-bottom: 4px;
+            transition: color 0.3s ease, border 0.3s ease;
         }
 
         .suggest-box ul {
@@ -320,31 +434,77 @@
 
         .suggest-box ul li {
             font-size: 12px;
-            color: #222;
-            background: #e8e8e0;
+            color: var(--text);
+            background: var(--suggest-bg);
             padding: 2px 12px;
-            border: 1px solid #c8c8c0;
+            border: 1px solid var(--border);
+            transition: background 0.3s ease, color 0.3s ease, border 0.3s ease;
         }
 
         .suggest-box ul li.empty {
             background: transparent;
             border: none;
-            color: #999;
+            color: var(--text-muted);
             font-style: italic;
             padding: 0;
         }
 
+        /* ===== Scrollbar ===== */
+        .list-box ul::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .list-box ul::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .list-box ul::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        /* ===== Responsive ===== */
         @media (max-width: 700px) {
-            .row, .lists { grid-template-columns: 1fr; }
-            .container { padding: 16px; }
-            .score-area { flex-wrap: wrap; gap: 12px; }
+            .row, .lists {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 16px;
+            }
+            .score-area {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .stats {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .actions {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>keyword matcher</h1>
+    <div class="header">
+        <h1>keyword matcher</h1>
+        <button class="theme-toggle" id="themeToggle">dark mode</button>
+    </div>
 
     <div class="status" id="status">ready</div>
 
@@ -404,7 +564,7 @@
     (function() {
         'use strict';
 
-        // DOM refs
+        // ===== DOM REFS =====
         const jobText = document.getElementById('jobText');
         const resumeText = document.getElementById('resumeText');
         const fileInput = document.getElementById('fileInput');
@@ -423,12 +583,29 @@
         const suggestList = document.getElementById('suggestList');
         const jobCount = document.getElementById('jobCount');
         const resumeCount = document.getElementById('resumeCount');
+        const themeToggle = document.getElementById('themeToggle');
 
+        // ===== THEME =====
+        let currentTheme = localStorage.getItem('kw-theme') || 'light';
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            currentTheme = theme;
+            localStorage.setItem('kw-theme', theme);
+            themeToggle.textContent = theme === 'dark' ? 'light mode' : 'dark mode';
+        }
+
+        applyTheme(currentTheme);
+
+        themeToggle.addEventListener('click', function() {
+            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        });
+
+        // ===== UTILITY FUNCTIONS =====
         function setStatus(msg) {
             statusEl.textContent = msg;
         }
 
-        // Word counter
         function countWords(text) {
             const t = text.trim();
             return t ? t.split(/\s+/).length : 0;
@@ -439,11 +616,12 @@
             resumeCount.textContent = countWords(resumeText.value) + ' words';
         }
 
+        // ===== EVENT: word count =====
         jobText.addEventListener('input', updateCounts);
         resumeText.addEventListener('input', updateCounts);
         updateCounts();
 
-        // File upload
+        // ===== FILE UPLOAD =====
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -460,11 +638,36 @@
             reader.readAsText(file);
         });
 
-        // Keyword extraction - simple but effective
+        // ===== DRAG AND DROP =====
+        resumeText.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            resumeText.style.borderColor = '#888';
+        });
+
+        resumeText.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            resumeText.style.borderColor = '';
+        });
+
+        resumeText.addEventListener('drop', function(e) {
+            e.preventDefault();
+            resumeText.style.borderColor = '';
+            const file = e.dataTransfer.files[0];
+            if (!file) return;
+            fileName.textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                resumeText.value = ev.target.result;
+                updateCounts();
+                setStatus('loaded: ' + file.name);
+            };
+            reader.readAsText(file);
+        });
+
+        // ===== KEYWORD EXTRACTION =====
         function extractKeywords(text) {
             if (!text || text.trim() === '') return [];
 
-            // Clean text
             const cleaned = text.toLowerCase()
                 .replace(/[^a-z0-9 ]/g, ' ')
                 .replace(/\s+/g, ' ')
@@ -474,14 +677,12 @@
 
             const words = cleaned.split(' ').filter(w => w.length > 2);
 
-            // Stopwords
             const stop = new Set([
                 'the','and','for','are','but','not','you','all','can','had','her','was','one','our','out','see','she','two','use','way','who','your','about','above','after','again','against','along','among','around','because','before','behind','below','beneath','beside','between','beyond','during','except','inside','outside','over','under','upon','through','toward','within','without','according','actually','adjusted','almost','already','although','always','amount','anyhow','anything','anyway','anywhere','became','become','becomes','becoming','being','besides','both','cannot','certain','certainly','clear','clearly','come','could','did','different','does','done','down','each','either','enough','especially','even','ever','every','everyone','everything','everywhere','except','fairly','few','former','formerly','further','furthermore','get','give','given','go','gone','got','great','greatly','had','has','hasnt','having','he','hence','her','here','hereafter','hereby','herein','hereupon','hers','herself','him','himself','his','how','however','hundred','if','indeed','instead','into','is','it','its','itself','just','keep','kept','know','known','least','less','let','like','likely','make','many','may','me','meanwhile','might','more','moreover','most','mostly','much','must','my','myself','name','namely','neither','never','nevertheless','next','no','nobody','none','noone','nor','not','nothing','now','nowhere','of','off','often','on','only','onto','or','other','others','otherwise','our','ours','ourselves','out','over','own','part','particular','particularly','per','perhaps','please','possible','presumably','probably','rather','really','regarding','right','same','seem','seemed','seeming','seems','serious','several','she','should','since','so','some','somehow','someone','something','sometime','sometimes','somewhat','somewhere','still','such','than','that','their','them','themselves','then','thence','there','thereafter','thereby','therefore','therein','thereupon','these','they','this','those','though','through','throughout','thru','thus','to','together','too','toward','towards','under','unless','until','up','upon','us','very','was','we','well','were','what','whatever','when','whence','whenever','where','whereafter','whereas','whereby','wherein','whereupon','wherever','whether','which','while','whither','who','whoever','whole','whom','whose','why','will','with','within','without','would','yet','you','your','yours','yourself','yourselves','experience','especially','required','preferred','nice','good','great','excellent','strong','solid','proven','track','record','history','looking','seeking','hiring','role','position','team','company','client','project','manage','management','lead','leading','led','responsible','responsibilities','duties','tasks','activities','support','provide','ensure','maintain','develop','developing','implement','implementing','design','designing','build','building','create','creating','plan','planning','coordinate','coordinating','analyze','analyzing','evaluate','evaluating','improve','improving','increase','decrease','reduce','growth','grow','exceed','achieve'
             ]);
 
             const filtered = words.filter(w => !stop.has(w));
 
-            // Remove duplicates
             const unique = [];
             const seen = new Set();
             for (const w of filtered) {
@@ -494,7 +695,7 @@
             return unique;
         }
 
-        // Main analysis
+        // ===== ANALYSIS =====
         function analyze() {
             const job = jobText.value.trim();
             const resume = resumeText.value.trim();
@@ -533,7 +734,7 @@
             const missCount = missing.length;
             const score = total > 0 ? Math.round((matchCount / total) * 100) : 0;
 
-            // Update score
+            // Score
             scoreCircle.textContent = score + '%';
             scoreCircle.className = 'score-circle';
             if (score >= 70) scoreCircle.classList.add('high');
@@ -544,7 +745,7 @@
             missingNum.textContent = missCount;
             totalNum.textContent = total;
 
-            // Matched list
+            // Matched
             matchedList.innerHTML = '';
             if (matched.length > 0) {
                 for (const kw of matched) {
@@ -560,7 +761,7 @@
                 matchedList.appendChild(li);
             }
 
-            // Missing list
+            // Missing
             missingList.innerHTML = '';
             if (missing.length > 0) {
                 for (const kw of missing) {
@@ -590,13 +791,13 @@
                     li.textContent = '+' + (missing.length - 12) + ' more';
                     li.style.background = 'transparent';
                     li.style.border = 'none';
-                    li.style.color = '#999';
+                    li.style.color = 'var(--text-muted)';
                     suggestList.appendChild(li);
                 }
             } else {
                 const li = document.createElement('li');
                 li.className = 'empty';
-                li.textContent = 'no suggestions';
+                li.textContent = 'no suggestions needed';
                 suggestList.appendChild(li);
             }
 
@@ -604,7 +805,7 @@
             setStatus('complete - ' + matchCount + ' matched, ' + missCount + ' missing');
         }
 
-        // Event listeners
+        // ===== EVENT LISTENERS =====
         analyzeBtn.addEventListener('click', analyze);
 
         clearBtn.addEventListener('click', function() {
@@ -625,7 +826,7 @@
             setStatus('sample loaded');
         });
 
-        // Auto-analyze when results are visible
+        // ===== AUTO-ANALYZE =====
         let timer = null;
         function autoAnalyze() {
             if (results.classList.contains('visible')) {
@@ -637,7 +838,7 @@
         jobText.addEventListener('input', autoAnalyze);
         resumeText.addEventListener('input', autoAnalyze);
 
-        // Keyboard shortcut
+        // ===== KEYBOARD SHORTCUT =====
         document.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
@@ -645,7 +846,7 @@
             }
         });
 
-        // Start empty
+        // ===== START EMPTY =====
         jobText.value = '';
         resumeText.value = '';
         updateCounts();
